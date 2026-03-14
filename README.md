@@ -1,33 +1,5 @@
 # MetroLite
 
 A simple static web project with `index.html`, `style.css`, and `script.js`.
-
-## Getting Started
-
-1. Open `index.html` in your browser.
-2. Edit `style.css` and `script.js` to customize the site.
-
-## Deployment
-
-### GitHub
-1. Create a new repository on GitHub.
-2. In this project folder:
-   ```sh
-   git init
-   git add .
-   git commit -m "Initial commit"
-   git remote add origin https://github.com/<your-username>/<your-repo>.git
-   git push -u origin main
-   ```
-
-### Vercel
-1. Install the Vercel CLI (optional):
-   ```sh
-   npm i -g vercel
-   ```
-2. Run:
-   ```sh
-   vercel
-   ```
-
-Then follow the prompts to link the project and deploy.
+ is what you probably think about this project but i have used all of my brain which is burning rn to be honest
+ i made this project because i  have always been a fan of the minimetro in the playstore. i know the project is not original but i have tried making it most original as i could thank you for checking this out.
