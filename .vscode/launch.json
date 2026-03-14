@@ -1,0 +1,21 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Open in Browser (Brave)",
+      "type": "chrome",
+      "request": "launch",
+      "runtimeExecutable": "C:\\Program Files\\BraveSoftware\\Brave-Browser\\Application\\brave.exe",
+      "file": "${workspaceFolder}/index",
+      "webRoot": "${workspaceFolder}"
+    },
+    {
+      "name": "Open with Live Server (Brave)",
+      "type": "chrome",
+      "request": "launch",
+      "runtimeExecutable": "C:\\Program Files\\BraveSoftware\\Brave-Browser\\Application\\brave.exe",
+      "url": "http://localhost:5500/index",
+      "webRoot": "${workspaceFolder}"
+    }
+  ]
+}      

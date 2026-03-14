@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MicroMetro</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <canvas id="canvas"></canvas>
+
+  <!-- ══ HUD ══ -->
+  <div id="hud" class="hidden">
+    <div class="hcell">
+      <span class="hlabel">SCORE</span>
+      <span class="hv" id="hs">0</span>
+    </div>
+    <div class="hcell">
+      <span class="hlabel">LINES</span>
+      <span class="hv" id="hl">0</span>
+    </div>
+    <div class="hcell">
+      <span id="hd" class="hdiff normal">NORMAL</span>
+    </div>
+    <div class="hcell btn" id="theme-btn" title="Toggle theme">
+      <span id="theme-icon">☀</span>
+      <span style="font-size:9px;letter-spacing:2px;">LIGHT</span>
+    </div>
+    <div class="hcell btn" id="pause-btn" title="Pause (P)">
+      <span>⏸</span>
+      <span style="font-size:9px;letter-spacing:2px;">PAUSE</span>
+    </div>
+    <div class="hcell btn" id="menu-btn" title="Main Menu">
+      <span>⌂</span>
+      <span style="font-size:9px;letter-spacing:2px;">MENU</span>
+    </div>
+  </div>
+
+  <!-- ══ BOTTOM PANEL ══ -->
+  <div id="panel" class="hidden">
+    <div id="swatches" style="display:flex;gap:9px;align-items:center;"></div>
+    <div class="psep"></div>
+    <button class="shop-btn" id="buy-line-btn">
+      <span class="sc" id="line-cost-val">— PTS</span>
+      <span class="sl">BUY LINE</span>
+    </button>
+    <button class="shop-btn" id="buy-train-btn" disabled>
+      <span class="sc" id="train-cost-val">— PTS</span>
+      <span class="sl">ADD TRAIN</span>
+    </button>
+    <div class="psep"></div>
+    <button id="htp-game-btn" title="How to play">? HOW TO PLAY</button>
+  </div>
+
+  <!-- ══ IN-GAME HOW-TO-PLAY DRAWER ══ -->
+  <div id="htp-drawer">
+    <h3>HOW TO PLAY</h3>
+    <div class="htp-grid">
+      <div class="htp-item">
+        <div class="htp-row1"><span class="htp-icon">🖱</span><span class="htp-title">DRAW A LINE</span></div>
+        <div class="htp-desc">Click any station, then click another. A coloured line and train appear automatically.</div>
+      </div>
+      <div class="htp-item">
+        <div class="htp-row1"><span class="htp-icon">➕</span><span class="htp-title">EXTEND A LINE</span></div>
+        <div class="htp-desc">Click an endpoint station (start or end of a line), then click any new station to add it.</div>
+      </div>
+      <div class="htp-item">
+        <div class="htp-row1"><span class="htp-icon">⊕</span><span class="htp-title">INSERT A STOP</span></div>
+        <div class="htp-desc">Hover near an existing track. A gold glow shows the segment — click to insert the stop there.</div>
+      </div>
+      <div class="htp-item">
+        <div class="htp-row1"><span class="htp-icon">🎨</span><span class="htp-title">TARGET A LINE</span></div>
+        <div class="htp-desc">Click a coloured swatch below to select a line. Next connection will extend that line specifically.</div>
+      </div>
+      <div class="htp-item">
+        <div class="htp-row1"><span class="htp-icon">🚂</span><span class="htp-title">ADD A TRAIN</span></div>
+        <div class="htp-desc">Select a line swatch, then click ADD TRAIN. Trains stagger so they spread across the route.</div>
+      </div>
+      <div class="htp-item">
+        <div class="htp-row1"><span class="htp-icon">💰</span><span class="htp-title">BUY LINE SLOTS</span></div>
+        <div class="htp-desc">Spend points to unlock extra line slots. Cost increases with each purchase.</div>
+      </div>
+      <div class="htp-item">
+        <div class="htp-row1"><span class="htp-icon">⚠</span><span class="htp-title">DANGER ARC</span></div>
+        <div class="htp-desc">A red arc fills when a station is full. If it completes before trains arrive — Game Over.</div>
+      </div>
+      <div class="htp-item">
+        <div class="htp-row1"><span class="htp-icon">🔵</span><span class="htp-title">PASSENGERS</span></div>
+        <div class="htp-desc">Small shapes above stations show where passengers want to go. Send them to matching stations.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ PAUSE OVERLAY ══ -->
+  <div id="pause-overlay">
+    <div class="pause-title">PAUSED</div>
+    <div class="pause-sub">GAME IS PAUSED — ALL TRAINS STOPPED</div>
+    <div class="pause-btns">
+      <button class="ov-btn" id="resume-btn">▶ RESUME</button>
+      <button class="ov-btn dim" id="restart-btn">↺ RESTART</button>
+      <button class="ov-btn dim" id="pause-menu-btn">⌂ MAIN MENU</button>
+    </div>
+  </div>
+
+  <!-- ══ FLASH + INSERT BADGE ══ -->
+  <div id="flash"></div>
+  <div id="insert-badge">⊕ WILL INSERT INTO LINE</div>
+
+  <!-- ══ MAIN OVERLAY (menu / game-over) ══ -->
+  <div id="overlay"></div>
+
+  <script src="script.js"></script>
+</body>
+</html>
