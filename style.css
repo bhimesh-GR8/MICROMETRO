@@ -1,7 +1,4 @@
-/* ══════════════════════════════════════════════════
-   MICROMETRO - MAIN STYLESHEET
-   Theme tokens and component styles
-══════════════════════════════════════════════════ */
+/*MICROMETRO - MAIN STYLESHEE*/
 
 :root {
   --bg:           #0d1117;
@@ -68,9 +65,7 @@ canvas {
   cursor: crosshair;
 }
 
-/* ══════════════════════════════════════════════════
-   HUD (top centre pill)
-══════════════════════════════════════════════════ */
+/* HUD (top centre pill)*/
 #hud {
   position: fixed;
   top: 14px;
@@ -162,9 +157,7 @@ body.light .hcell.btn:hover {
   border-color: rgba(231, 76, 60, 0.45);
 }
 
-/* ══════════════════════════════════════════════════
-   BOTTOM PANEL
-══════════════════════════════════════════════════ */
+/* BOTTOM PANEL*/
 #panel {
   position: fixed;
   bottom: 0;
@@ -362,9 +355,7 @@ body.light #htp-game-btn:hover {
   flex-shrink: 0;
 }
 
-/* ══════════════════════════════════════════════════
-   IN-GAME HOW-TO-PLAY DRAWER (slides up above panel)
-══════════════════════════════════════════════════ */
+/* IN-GAME HOW-TO-PLAY DRAWER */
 #htp-drawer {
   position: fixed;
   bottom: 62px;
@@ -442,9 +433,7 @@ body.light .htp-item {
   line-height: 1.7;
 }
 
-/* ══════════════════════════════════════════════════
-   PAUSE / MAIN OVERLAY
-══════════════════════════════════════════════════ */
+/* PAUSE / MAIN OVERLAY*/
 #overlay {
   position: fixed;
   inset: 0;
@@ -515,9 +504,7 @@ body.light #pause-overlay {
   justify-content: center;
 }
 
-/* ══════════════════════════════════════════════════
-   OVERLAY SHARED ELEMENTS
-══════════════════════════════════════════════════ */
+/* OVERLAY SHARED ELEMENTS */
 .ov-logo {
   font-size: 52px;
   letter-spacing: 14px;
@@ -813,9 +800,7 @@ body.light .ov-btn:hover {
   gap: 12px;
 }
 
-/* ══════════════════════════════════════════════════
-   FLASH + INSERT BADGE
-══════════════════════════════════════════════════ */
+/* INSERT BADGE */
 #flash {
   position: fixed;
   top: 66px;

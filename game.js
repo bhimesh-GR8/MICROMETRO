@@ -1,544 +1,32 @@
 'use strict';
 
-/* ═══════════════════════════════════════════════════════════
-   MICROMETRO - GAME LOGIC & RENDERING
-   A subway simulation game by a human
-═══════════════════════════════════════════════════════════ */
-
-// Game configuration and constants
-const DIFFICULTY_MODES = {
-  easy: {
-    key: 'easy',
-    label: 'EASY',
-    maxPassengers: 8,
-    overcrowdLimit: 20,
-    passSpawnInterval: 5.0,
-    startingLines: 4,
-    scorePerDelivery: 5,
-    newLineCost: 80,
-    newTrainCost: 50,
-    maxTrainsPerLine: 4
-  },
-  normal: {
-    key: 'normal',
-    label: 'NORMAL',
-    maxPassengers: 5,
-    overcrowdLimit: 14,
-    passSpawnInterval: 3.5,
-    startingLines: 3,
-    scorePerDelivery: 8,
-    newLineCost: 150,
-    newTrainCost: 80,
-    maxTrainsPerLine: 3
-  },
-  hard: {
-    key: 'hard',
-    label: 'HARD',
-    maxPassengers: 3,
-    overcrowdLimit: 9,
-    passSpawnInterval: 2.3,
-    startingLines: 2,
-    scorePerDelivery: 15,
-    newLineCost: 220,
-    newTrainCost: 130,
-    maxTrainsPerLine: 3
-  }
-};
-
-const LINE_COLORS = ['#FF4444', '#4d9ef7', '#2ecc71', '#FFBB33', '#b76aff', '#FF44CC', '#00CCEE', '#FF8844', '#AEFF44', '#FF4488'];
-const MAX_POSSIBLE_LINES = LINE_COLORS.length;
-const PASSENGER_SHAPES = ['circle', 'square', 'triangle'];
-const TRAIN_SPEED = 150;
-const TRAIN_STOP_TIME = 1.3;
-const STATION_SPAWN_INTERVAL = 26;
-const MIN_STATION_DISTANCE = 112;
-const STATION_RADIUS = 16;
-const INITIAL_STATIONS = 6;
-const INSERT_DETECTION_RADIUS = 72;
-
-/* ═══════════════════════════════════════════════════════════
-   UTILITY FUNCTIONS
-═══════════════════════════════════════════════════════════ */
-
-// Linear interpolation between two values
-function lerp(start, end, factor) {
-  return start + (end - start) * factor;
-}
-
-// Distance from a point to a line segment and interpolation factor
-function pointToSegmentDistance(px, py, ax, ay, bx, by) {
-  const dx = bx - ax;
-  const dy = by - ay;
-  const lengthSquared = dx * dx + dy * dy;
-
-  if (!lengthSquared) {
-    return {
-      distance: Math.hypot(px - ax, py - ay),
-      interpolation: 0
-    };
-  }
-
-  let t = ((px - ax) * dx + (py - ay) * dy) / lengthSquared;
-  t = Math.max(0, Math.min(1, t));
-
-  return {
-    distance: Math.hypot(px - (ax + t * dx), py - (ay + t * dy)),
-    interpolation: t
-  };
-}
-
-// Find the best line segment to insert into
-function findBestInsertSegment(line, sx, sy) {
-  let bestIndex = -1;
-  let bestDistance = Infinity;
-
-  for (let i = 0; i < line.stations.length - 1; i++) {
-    const stationA = line.stations[i];
-    const stationB = line.stations[i + 1];
-    const { distance } = pointToSegmentDistance(sx, sy, stationA.x, stationA.y, stationB.x, stationB.y);
-
-    if (distance < bestDistance) {
-      bestDistance = distance;
-      bestIndex = i;
-    }
-  }
-
-  return {
-    segmentIndex: bestIndex,
-    distance: bestDistance
-  };
-}
-
-// Draw a shape (circle, square, or triangle)
-function drawShape(context, shapeType, x, y, size) {
-  context.beginPath();
-
-  if (shapeType === 'circle') {
-    context.arc(x, y, size, 0, Math.PI * 2);
-  } else if (shapeType === 'square') {
-    const halfSize = size * 1.05;
-    context.rect(x - halfSize, y - halfSize, halfSize * 2, halfSize * 2);
-  } else if (shapeType === 'triangle') {
-    const halfSize = size * 1.15;
-    context.moveTo(x, y - halfSize * 1.1);
-    context.lineTo(x + halfSize, y + halfSize * 0.7);
-    context.lineTo(x - halfSize, y + halfSize * 0.7);
-    context.closePath();
-  }
-}
-
-// Draw a rounded rectangle path
-function drawRoundedRect(context, x, y, width, height, radius) {
-  context.beginPath();
-  context.moveTo(x + radius, y);
-  context.lineTo(x + width - radius, y);
-  context.quadraticCurveTo(x + width, y, x + width, y + radius);
-  context.lineTo(x + width, y + height - radius);
-  context.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
-  context.lineTo(x + radius, y + height);
-  context.quadraticCurveTo(x, y + height, x, y + height - radius);
-  context.lineTo(x, y + radius);
-  context.quadraticCurveTo(x, y, x + radius, y);
-  context.closePath();
-}
-
-/* ═══════════════════════════════════════════════════════════
-   PASSENGER CLASS
-═══════════════════════════════════════════════════════════ */
-
-class Passenger {
-  constructor(destinationShape) {
-    this.destination = destinationShape;
-  }
-}
-
-/* ═══════════════════════════════════════════════════════════
-   STATION CLASS
-═══════════════════════════════════════════════════════════ */
-
-class Station {
-  constructor(x, y, shape) {
-    this.x = x;
-    this.y = y;
-    this.shape = shape;
-    this.passengers = [];
-    this.overcrowdingTimer = 0;
-    this.spawnAnimation = 0;
-    this.connectedLines = [];
-  }
-
-  isFull(maxPassengers) {
-    return this.passengers.length >= maxPassengers;
-  }
-
-  update(deltaTime, maxPassengers) {
-    // Animate station spawn
-    if (this.spawnAnimation < 1) {
-      this.spawnAnimation = Math.min(1, this.spawnAnimation + deltaTime * 1.8);
-    }
-
-    // Update crowding timer
-    if (this.isFull(maxPassengers)) {
-      this.overcrowdingTimer += deltaTime;
-    } else {
-      this.overcrowdingTimer = Math.max(0, this.overcrowdingTimer - deltaTime * 0.5);
-    }
-  }
-
-  draw(context, isSelected, maxPassengers, overcrowdLimit, isDarkTheme) {
-    const animatedSize = STATION_RADIUS * this.spawnAnimation;
-    if (animatedSize < 1) return;
-
-    const dangerLevel = this.isFull(maxPassengers) ? Math.min(1, this.overcrowdingTimer / overcrowdLimit) : 0;
-
-    // Draw glows
-    if (dangerLevel > 0) {
-      const pulse = 0.5 + 0.5 * Math.sin(Date.now() * 0.009 * (1 + dangerLevel * 4));
-      context.shadowColor = `rgba(255, 50, 50, ${dangerLevel * pulse * 0.85})`;
-      context.shadowBlur = 34 * dangerLevel;
-    }
-
-    if (isSelected) {
-      context.shadowColor = isDarkTheme ? 'rgba(255, 255, 140, 0.95)' : 'rgba(60, 60, 0, 0.7)';
-      context.shadowBlur = 28;
-    }
-
-    // Draw station body
-    context.fillStyle = isSelected ? '#ffffa0' : (isDarkTheme ? '#ffffff' : '#0d1117');
-    context.strokeStyle = isDarkTheme ? '#0d1117' : '#f0ece2';
-    context.lineWidth = 3.5;
-    drawShape(context, this.shape, this.x, this.y, animatedSize);
-    context.fill();
-    context.stroke();
-    context.shadowBlur = 0;
-    context.shadowColor = 'transparent';
-
-    // Draw line membership rings
-    if (this.connectedLines.length) {
-      const lineCount = this.connectedLines.length;
-      const arcSize = Math.PI * 2 / lineCount;
-
-      this.connectedLines.forEach((line, index) => {
-        context.beginPath();
-        context.arc(this.x, this.y, animatedSize + 6, index * arcSize, (index + 1) * arcSize - 0.1);
-        context.strokeStyle = line.color;
-        context.lineWidth = 3.5;
-        context.stroke();
-      });
-    }
-
-    // Draw danger arc
-    if (dangerLevel > 0) {
-      context.beginPath();
-      context.arc(this.x, this.y, STATION_RADIUS + 11, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * dangerLevel);
-      context.strokeStyle = `rgba(255, ${Math.floor(46 + (1 - dangerLevel) * 114)}, 46, 0.9)`;
-      context.lineWidth = 4;
-      context.stroke();
-    }
-
-    // Draw waiting passengers
-    const passengerCount = this.passengers.length;
-    if (passengerCount) {
-      const visibleCount = Math.min(passengerCount, maxPassengers);
-      const columns = 4;
-      const spacing = 12.5;
-      const dotRadius = 4.8;
-      const rows = Math.ceil(visibleCount / columns);
-      const baseY = this.y - STATION_RADIUS - 18;
-
-      for (let i = 0; i < visibleCount; i++) {
-        const col = i % columns;
-        const row = Math.floor(i / columns);
-        const passengerX = this.x + (col - (Math.min(visibleCount, columns) - 1) / 2) * spacing;
-        const passengerY = baseY - (rows - 1 - row) * spacing;
-
-        const dangerColor = dangerLevel > 0.65 ? 'rgba(255, 65, 65, 0.96)'
-          : dangerLevel > 0.3 ? 'rgba(255, 175, 45, 0.96)'
-          : isDarkTheme ? 'rgba(255, 255, 255, 0.88)' : 'rgba(0, 0, 0, 0.72)';
-
-        context.fillStyle = dangerColor;
-        drawShape(context, this.passengers[i].destination, passengerX, passengerY, dotRadius);
-        context.fill();
-      }
-
-      // Show overflow count
-      if (passengerCount > maxPassengers) {
-        context.fillStyle = 'rgba(255, 80, 80, 0.9)';
-        context.font = 'bold 10px Courier New';
-        context.textAlign = 'center';
-        context.fillText(`+${passengerCount - maxPassengers}`, this.x, baseY - rows * spacing);
-      }
-    }
-
-    // Draw shape label
-    context.font = 'bold 8px Courier New';
-    context.textAlign = 'center';
-    context.fillStyle = isDarkTheme ? 'rgba(255, 255, 255, 0.32)' : 'rgba(0, 0, 0, 0.32)';
-    context.fillText(this.shape.slice(0, 3).toUpperCase(), this.x, this.y + STATION_RADIUS + 16);
-  }
-}
-
-/* ═══════════════════════════════════════════════════════════
-   TRAIN CLASS
-═══════════════════════════════════════════════════════════ */
-
-class Train {
-  constructor(line, startingStationIndex = 0, direction = 1) {
-    this.line = line;
-    this.currentStationIndex = startingStationIndex;
-    this.direction = direction;
-    this.progressAlongSegment = 0;
-    this.state = 'stopped';
-    this.stopTimer = TRAIN_STOP_TIME + startingStationIndex * 0.6;
-    this.passengers = [];
-    this.x = line.stations[startingStationIndex].x;
-    this.y = line.stations[startingStationIndex].y;
-    this.angle = 0;
-  }
-
-  update(deltaTime) {
-    const stations = this.line.stations;
-    if (stations.length < 2) return;
-
-    if (this.state === 'stopped') {
-      this.stopTimer -= deltaTime;
-      if (this.stopTimer <= 0) {
-        this.pickupPassengers();
-        this.state = 'moving';
-      }
-      return;
-    }
-
-    // Check boundaries and reverse if needed
-    if (this.currentStationIndex + this.direction < 0 || this.currentStationIndex + this.direction >= stations.length) {
-      this.direction *= -1;
-    }
-
-    const currentStation = stations[this.currentStationIndex];
-    const nextStation = stations[this.currentStationIndex + this.direction];
-    const segmentDistance = Math.max(1, Math.hypot(nextStation.x - currentStation.x, nextStation.y - currentStation.y));
-
-    this.angle = Math.atan2(nextStation.y - currentStation.y, nextStation.x - currentStation.x);
-    this.progressAlongSegment += (TRAIN_SPEED / segmentDistance) * deltaTime;
-    this.x = lerp(currentStation.x, nextStation.x, this.progressAlongSegment);
-    this.y = lerp(currentStation.y, nextStation.y, this.progressAlongSegment);
-
-    // Move to next station
-    if (this.progressAlongSegment >= 1) {
-      this.currentStationIndex += this.direction;
-      this.progressAlongSegment = 0;
-      this.x = stations[this.currentStationIndex].x;
-      this.y = stations[this.currentStationIndex].y;
-      this.state = 'stopped';
-      this.stopTimer = TRAIN_STOP_TIME;
-    }
-  }
-
-  pickupPassengers() {
-    const station = this.line.stations[this.currentStationIndex];
-
-    // Drop off passengers at destination
-    for (let i = this.passengers.length - 1; i >= 0; i--) {
-      if (this.passengers[i].destination === station.shape) {
-        this.passengers.splice(i, 1);
-        gameInstance.onPassengerDelivered(station);
-      }
-    }
-
-    // Pick up all waiting passengers
-    while (station.passengers.length > 0) {
-      this.passengers.push(station.passengers.shift());
-    }
-  }
-
-  draw(context, isDarkTheme) {
-    context.save();
-    context.translate(this.x, this.y);
-    context.rotate(this.angle);
-
-    const width = 29;
-    const height = 14;
-    const cornerRadius = 4;
-
-    context.shadowColor = this.line.color;
-    context.shadowBlur = 15;
-    drawRoundedRect(context, -width / 2, -height / 2, width, height, cornerRadius);
-    context.fillStyle = this.line.color;
-    context.fill();
-    context.shadowBlur = 0;
-    context.shadowColor = 'transparent';
-
-    // Draw train outline
-    context.strokeStyle = isDarkTheme ? 'rgba(255, 255, 255, 0.28)' : 'rgba(0, 0, 0, 0.22)';
-    context.lineWidth = 1.6;
-    drawRoundedRect(context, -width / 2, -height / 2, width, height, cornerRadius);
-    context.stroke();
-
-    // Draw separator line
-    context.strokeStyle = isDarkTheme ? 'rgba(255, 255, 255, 0.2)' : 'rgba(0, 0, 0, 0.14)';
-    context.lineWidth = 1;
-    context.beginPath();
-    context.moveTo(width / 2 - 6, -height / 2 + 2);
-    context.lineTo(width / 2 - 6, height / 2 - 2);
-    context.stroke();
-
-    // Draw passenger indicators
-    const passengerCount = this.passengers.length;
-    if (passengerCount) {
-      const maxShown = 12;
-      const shownCount = Math.min(passengerCount, maxShown);
-      const spacing = Math.min(4, (width - 10) / shownCount);
-      const startX = -(shownCount - 1) * spacing / 2;
-
-      context.fillStyle = isDarkTheme ? 'rgba(255, 255, 255, 0.9)' : 'rgba(0, 0, 0, 0.55)';
-      for (let i = 0; i < shownCount; i++) {
-        context.beginPath();
-        context.arc(startX - 1 + i * spacing, 0, 2.3, 0, Math.PI * 2);
-        context.fill();
-      }
-
-      // Show overflow count
-      if (passengerCount > maxShown) {
-        context.font = 'bold 8px Courier New';
-        context.textAlign = 'center';
-        context.textBaseline = 'middle';
-        context.fillStyle = isDarkTheme ? 'rgba(255, 255, 255, 0.95)' : 'rgba(0, 0, 0, 0.7)';
-        context.fillText(`+${passengerCount - maxShown}`, width / 2 - 4, 0);
-        context.textBaseline = 'alphabetic';
-      }
-    }
-
-    context.restore();
-  }
-}
-
-/* ═══════════════════════════════════════════════════════════
-   LINE CLASS
-═══════════════════════════════════════════════════════════ */
-
-class Line {
-  constructor(color) {
-    this.color = color;
-    this.stations = [];
-    this.trains = [];
-  }
-
-  addStation(station) {
-    this.stations.push(station);
-    this.updateConnections();
-    if (this.stations.length === 2) {
-      this.trains.push(new Train(this, 0, 1));
-    }
-  }
-
-  prependStation(station) {
-    this.stations.unshift(station);
-    this.trains.forEach(train => {
-      train.currentStationIndex = Math.min(train.currentStationIndex + 1, this.stations.length - 1);
-    });
-    this.updateConnections();
-    if (this.stations.length === 2) {
-      this.trains.push(new Train(this, 0, 1));
-    }
-  }
-
-  insertAfter(segmentIndex, station) {
-    this.stations.splice(segmentIndex + 1, 0, station);
-    this.trains.forEach(train => {
-      if (train.currentStationIndex > segmentIndex) {
-        train.currentStationIndex = Math.min(train.currentStationIndex + 1, this.stations.length - 1);
-      }
-    });
-    this.updateConnections();
-  }
-
-  addTrain() {
-    const middleIndex = Math.floor(this.stations.length / 2);
-    const direction = (this.trains.length % 2 === 0) ? 1 : -1;
-    const newTrain = new Train(this, middleIndex, direction);
-    newTrain.stopTimer = TRAIN_STOP_TIME * 2;
-    this.trains.push(newTrain);
-  }
-
-  updateConnections() {
-    this.stations.forEach(station => {
-      if (!station.connectedLines.includes(this)) {
-        station.connectedLines.push(this);
-      }
-    });
-  }
-
-  hasStation(station) {
-    return this.stations.includes(station);
-  }
-
-  isTailEnd(station) {
-    return this.stations.length > 0 && station === this.stations[this.stations.length - 1];
-  }
-
-  isHeadEnd(station) {
-    return this.stations.length > 0 && station === this.stations[0];
-  }
-
-  update(deltaTime) {
-    this.trains.forEach(train => train.update(deltaTime));
-  }
-
-  draw(context, isDarkTheme, lineNumericalIndex) {
-    if (this.stations.length < 2) return;
-
-    context.shadowColor = this.color;
-    context.shadowBlur = 16;
-    context.strokeStyle = this.color;
-    context.lineWidth = 7;
-    context.lineCap = context.lineJoin = 'round';
-    context.globalAlpha = 0.28;
-    this.drawPath(context);
-    context.globalAlpha = 1;
-    context.shadowBlur = 0;
-    context.lineWidth = 5;
-    this.drawPath(context);
-    context.shadowColor = 'transparent';
-
-    // Draw line label near midpoint
-    const midIndex = Math.floor((this.stations.length - 1) / 2);
-    const stationA = this.stations[midIndex];
-    const stationB = this.stations[midIndex + 1] || stationA;
-    const labelX = (stationA.x + stationB.x) / 2;
-    const labelY = (stationA.y + stationB.y) / 2;
-
-    context.save();
-    context.font = 'bold 11px Courier New';
-    context.textAlign = 'center';
-    context.textBaseline = 'middle';
-    const label = `L${lineNumericalIndex + 1}`;
-    const labelWidth = context.measureText(label).width + 12;
-    drawRoundedRect(context, labelX - labelWidth / 2, labelY - 9, labelWidth, 18, 5);
-    context.fillStyle = isDarkTheme ? 'rgba(0, 0, 0, 0.6)' : 'rgba(255, 255, 255, 0.72)';
-    context.fill();
-    context.fillStyle = this.color;
-    context.fillText(label, labelX, labelY);
-    context.restore();
-    context.textBaseline = 'alphabetic';
-
-    this.trains.forEach(train => train.draw(context, isDarkTheme));
-  }
-
-  drawPath(context) {
-    context.beginPath();
-    context.moveTo(this.stations[0].x, this.stations[0].y);
-    for (let i = 1; i < this.stations.length; i++) {
-      context.lineTo(this.stations[i].x, this.stations[i].y);
-    }
-    context.stroke();
-  }
-}
-
-/* ═══════════════════════════════════════════════════════════
-   MAIN GAME CLASS
-═══════════════════════════════════════════════════════════ */
-
-class Game {
+import {
+  DIFFICULTY_MODES,
+  LINE_COLORS,
+  MAX_POSSIBLE_LINES,
+  PASSENGER_SHAPES,
+  STATION_RADIUS,
+  STATION_SPAWN_INTERVAL,
+  MIN_STATION_DISTANCE,
+  INITIAL_STATIONS,
+  INSERT_DETECTION_RADIUS
+} from './constants.js';
+
+import {
+  findBestInsertSegment,
+  pointToSegmentDistance,
+  lerp,
+  drawRoundedRect
+} from './utils.js';
+
+import {
+  Station,
+  Train,
+  Line,
+  Passenger
+} from './entities.js';
+
+export class Game {
   constructor() {
     this.canvas = document.getElementById('canvas');
     this.ctx = this.canvas.getContext('2d');
@@ -612,7 +100,6 @@ class Game {
     });
   }
 
-  /* ── Theme Management ── */
   toggleTheme() {
     this.theme = this.isDarkTheme ? 'light' : 'dark';
     document.body.classList.toggle('light', !this.isDarkTheme);
@@ -621,7 +108,6 @@ class Game {
     themeBtn.querySelector('span:last-child').textContent = this.isDarkTheme ? 'LIGHT' : 'DARK';
   }
 
-  /* ── Pause Management ── */
   togglePause() {
     if (!this.isRunning) return;
 
@@ -652,7 +138,6 @@ class Game {
     btn.textContent = this.isHTPDrawerOpen ? '✕ CLOSE' : '? HOW TO PLAY';
   }
 
-  /* ── Menu Rendering ── */
   showMainMenu() {
     this.isPaused = false;
     this.isRunning = false;
@@ -769,7 +254,6 @@ class Game {
     document.getElementById('go-menu').addEventListener('click', () => this.showMainMenu());
   }
 
-  /* ── Game Start ── */
   startGame(difficultyConfig) {
     this.currentDifficulty = difficultyConfig;
     this.stations = [];
@@ -779,7 +263,7 @@ class Game {
     this.activeLineIndex = -1;
     this.score = 0;
     this.floatingTexts = [];
-    this.passSpawnTimer = -5; // Delay passenger spawning for 5 seconds at start
+    this.passSpawnTimer = -5;
     this.stationSpawnTimer = 0;
     this.isRunning = true;
     this.isPaused = false;
@@ -788,7 +272,6 @@ class Game {
     document.getElementById('pause-overlay').classList.remove('vis');
     if (this.isHTPDrawerOpen) this.toggleHTPDrawer();
 
-    // Reset pause button state
     document.getElementById('pause-btn').querySelector('span:first-child').textContent = '⏸';
     document.getElementById('pause-btn').querySelector('span:last-child').textContent = 'PAUSE';
 
@@ -814,7 +297,6 @@ class Game {
     }
   }
 
-  /* ── Station & Passenger Spawning ── */
   spawnStation() {
     const margin = 90;
     const width = this.canvas.width;
@@ -846,7 +328,6 @@ class Game {
     availableStation.passengers.push(new Passenger(randomDestination));
   }
 
-  /* ── Shop Functions ── */
   purchaseLine() {
     if (!this.isRunning || this.isPaused) return;
 
@@ -913,7 +394,6 @@ class Game {
     return this.currentDifficulty.newTrainCost * line.trains.length;
   }
 
-  /* ── Panel Management ── */
   updatePanel() {
     const container = document.getElementById('swatches');
     container.innerHTML = '';
@@ -978,7 +458,6 @@ class Game {
     }
   }
 
-  /* ── Input Handling ── */
   onMouseMove(event) {
     const rect = this.canvas.getBoundingClientRect();
     this.mouseX = event.clientX - rect.left;
@@ -1054,7 +533,6 @@ class Game {
   }
 
   connectStations(fromStation, toStation) {
-    // Helper to try extending a line
     const tryExtendLine = (line, stationA, stationB) => {
       if (line.hasStation(stationA) && line.hasStation(stationB)) return false;
       if (!line.hasStation(stationB) && line.isTailEnd(stationA)) {
@@ -1068,7 +546,6 @@ class Game {
       return false;
     };
 
-    // 0. Handle insert preview
     if (this.insertPreview) {
       const { line, segmentIndex } = this.insertPreview;
       if (!line.hasStation(toStation)) {
@@ -1080,7 +557,6 @@ class Game {
       }
     }
 
-    // 1. Try active line
     if (this.activeLineIndex >= 0) {
       const line = this.lines[this.activeLineIndex];
       if (line) {
@@ -1095,7 +571,6 @@ class Game {
       }
     }
 
-    // 2. Try auto-extend on any line endpoint
     for (const line of this.lines) {
       if (tryExtendLine(line, fromStation, toStation)) {
         this.updateHUD();
@@ -1112,7 +587,6 @@ class Game {
       }
     }
 
-    // 3. Try inserting into midline
     for (const line of this.lines) {
       if (line.hasStation(fromStation) && !line.hasStation(toStation)) {
         const { segmentIndex, distance } = findBestInsertSegment(line, toStation.x, toStation.y);
@@ -1126,7 +600,6 @@ class Game {
       }
     }
 
-    // 4. Try inserting reverse
     for (const line of this.lines) {
       if (line.hasStation(toStation) && !line.hasStation(fromStation)) {
         const { segmentIndex, distance } = findBestInsertSegment(line, fromStation.x, fromStation.y);
@@ -1140,13 +613,11 @@ class Game {
       }
     }
 
-    // 5. Check if already connected
     if (this.lines.some(line => line.hasStation(fromStation) && line.hasStation(toStation))) {
       this.showFlashMessage('ALREADY CONNECTED ON A LINE');
       return;
     }
 
-    // 6. Create new line
     if (this.lines.length >= this.maxLines) {
       this.showFlashMessage(`ALL SLOTS USED  ·  BUY MORE FOR ${this.getLinePurchaseCost()} PTS`);
       return;
@@ -1160,7 +631,6 @@ class Game {
     this.updatePanel();
   }
 
-  /* ── Callbacks & UI Updates ── */
   onPassengerDelivered(station) {
     this.score += this.currentDifficulty.scorePerDelivery;
     this.floatingTexts.push({
@@ -1187,18 +657,15 @@ class Game {
     this._flashTimeout = setTimeout(() => element.classList.remove('show'), 2600);
   }
 
-  /* ── Game Update & Render ── */
   update(deltaTime) {
     if (!this.isRunning || this.isPaused) return;
 
-    // Spawn stations periodically
     this.stationSpawnTimer += deltaTime;
     if (this.stationSpawnTimer >= STATION_SPAWN_INTERVAL) {
       this.stationSpawnTimer = 0;
       this.spawnStation();
     }
 
-    // Spawn passengers periodically
     this.passSpawnTimer += deltaTime;
     if (this.passSpawnTimer >= this.currentDifficulty.passSpawnInterval) {
       this.passSpawnTimer = 0;
@@ -1206,15 +673,12 @@ class Game {
       if (Math.random() < 0.4) this.spawnPassenger();
     }
 
-    // Update all game entities
     this.stations.forEach(stn => stn.update(deltaTime, this.currentDifficulty.maxPassengers));
     this.lines.forEach(line => line.update(deltaTime));
 
-    // Update floating text
     this.floatingTexts = this.floatingTexts.filter(f => f.timer > 0);
     this.floatingTexts.forEach(f => f.timer -= deltaTime);
 
-    // Check for game over
     if (this.stations.some(stn => stn.overcrowdingTimer >= this.currentDifficulty.overcrowdLimit)) {
       this.showGameOverScreen();
     }
@@ -1226,11 +690,9 @@ class Game {
     const height = this.canvas.height;
     const isDark = this.isDarkTheme;
 
-    // Draw background
     ctx.fillStyle = isDark ? '#0d1117' : '#f0ece2';
     ctx.fillRect(0, 0, width, height);
 
-    // Draw dot grid
     ctx.fillStyle = isDark ? 'rgba(255, 255, 255, 0.026)' : 'rgba(0, 0, 0, 0.048)';
     for (let gx = 48; gx < width; gx += 48) {
       for (let gy = 48; gy < height; gy += 48) {
@@ -1242,10 +704,8 @@ class Game {
 
     if (!this.isRunning) return;
 
-    // Draw lines and trains
     this.lines.forEach((line, index) => line.draw(ctx, isDark, index));
 
-    // Draw insert preview highlight
     if (this.insertPreview && this.selectedStation) {
       const { line, segmentIndex } = this.insertPreview;
       const stationA = line.stations[segmentIndex];
@@ -1266,7 +726,6 @@ class Game {
       }
     }
 
-    // Draw preview dashed line from selected station to mouse
     if (this.selectedStation) {
       let previewColor = this.insertPreview
         ? this.insertPreview.line.color
@@ -1289,10 +748,8 @@ class Game {
       ctx.restore();
     }
 
-    // Draw all stations
     this.stations.forEach(stn => stn.draw(ctx, stn === this.selectedStation, this.currentDifficulty.maxPassengers, this.currentDifficulty.overcrowdLimit, isDark));
 
-    // Draw floating point text
     this.floatingTexts.forEach(floatingText => {
       const progress = floatingText.timer / floatingText.maxTime;
       ctx.globalAlpha = progress;
@@ -1303,7 +760,6 @@ class Game {
     });
     ctx.globalAlpha = 1;
 
-    // Draw context hint bar
     const contextHint = this.selectedStation
       ? (this.insertPreview
         ? '⊕  CLICK TO INSERT INTO THE GLOWING LINE'
@@ -1324,7 +780,6 @@ class Game {
     ctx.fillStyle = isDark ? 'rgba(255, 255, 255, 0.78)' : 'rgba(0, 0, 0, 0.72)';
     ctx.fillText(contextHint, hintX, hintY);
 
-    // Draw pause overlay dim
     if (this.isPaused) {
       ctx.fillStyle = 'rgba(0, 0, 0, 0.35)';
       ctx.fillRect(0, 0, width, height);
@@ -1342,5 +797,7 @@ class Game {
   }
 }
 
-/* ── Initialize Game ── */
-const gameInstance = new Game();
+export function initGame() {
+  const gameInstance = new Game();
+  window.gameInstance = gameInstance;
+}
