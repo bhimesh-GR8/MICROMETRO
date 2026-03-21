@@ -56,7 +56,7 @@ body.light {
 body {
   background: var(--bg);
   overflow: hidden;
-  font-family: 'Courier New', Consolas, monospace;
+  font-family: 'Consolas', 'Courier New', monospace;
   transition: background 0.3s;
 }
 
@@ -68,7 +68,7 @@ canvas {
 /* HUD (top centre pill)*/
 #hud {
   position: fixed;
-  top: 14px;
+  top: 16px;
   left: 50%;
   transform: translateX(-50%);
   display: flex;
@@ -76,7 +76,7 @@ canvas {
   align-items: stretch;
   background: var(--panel2);
   border: 1px solid var(--border);
-  border-radius: 40px;
+  border-radius: 45px;
   backdrop-filter: blur(18px);
   user-select: none;
   z-index: 20;
@@ -93,9 +93,9 @@ canvas {
 .hcell {
   display: flex;
   align-items: center;
-  gap: 7px;
-  padding: 8px 18px;
-  font-size: 11px;
+  gap: 8px;
+  padding: 12px 20px;
+  font-size: 16px;
   letter-spacing: 2px;
   color: var(--txt6);
   border-right: 1px solid var(--border);
@@ -121,24 +121,24 @@ body.light .hcell.btn:hover {
 
 .hv {
   color: var(--accent);
-  font-size: 20px;
+  font-size: 22px;
   font-weight: bold;
   letter-spacing: 0;
-  min-width: 32px;
+  min-width: 36px;
   text-align: right;
 }
 
 .hlabel {
-  font-size: 9px;
+  font-size: 13px;
   letter-spacing: 3px;
   color: var(--txt4);
 }
 
 .hdiff {
-  font-size: 9px;
+  font-size: 13px;
   letter-spacing: 2px;
-  padding: 3px 10px;
-  border-radius: 16px;
+  padding: 6px 12px;
+  border-radius: 18px;
   border: 1px solid;
 }
 
@@ -166,8 +166,8 @@ body.light .hcell.btn:hover {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  padding: 10px 20px;
+  gap: 10px;
+  padding: 12px 24px;
   background: var(--panel);
   border-top: 1px solid var(--border);
   backdrop-filter: blur(20px);
@@ -183,8 +183,8 @@ body.light .hcell.btn:hover {
 }
 
 .swatch {
-  width: 38px;
-  height: 38px;
+  width: 42px;
+  height: 42px;
   border-radius: 50%;
   border: 2px solid rgba(255, 255, 255, 0.2);
   cursor: pointer;
@@ -240,8 +240,8 @@ body.light .swatch.active {
 }
 
 .swatch-empty {
-  width: 38px;
-  height: 38px;
+  width: 42px;
+  height: 42px;
   border-radius: 50%;
   border: 2px dashed var(--border);
   flex-shrink: 0;
@@ -249,7 +249,7 @@ body.light .swatch.active {
   align-items: center;
   justify-content: center;
   color: var(--txt4);
-  font-size: 16px;
+  font-size: 18px;
   pointer-events: none;
 }
 
@@ -258,19 +258,19 @@ body.light .swatch.active {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 5px 14px;
-  border-radius: 7px;
+  padding: 6px 16px;
+  border-radius: 8px;
   cursor: pointer;
   background: rgba(255, 255, 255, 0.04);
   border: 1px solid var(--border);
   color: var(--txt6);
-  font-family: 'Courier New', monospace;
-  font-size: 9px;
+  font-family: 'Consolas', 'Courier New', monospace;
+  font-size: 12px;
   letter-spacing: 2px;
   line-height: 1.8;
   transition: all 0.18s;
   white-space: nowrap;
-  min-width: 82px;
+  min-width: 90px;
 }
 
 body.light .shop-btn {
@@ -320,15 +320,15 @@ body.light .shop-btn:hover:not(:disabled) {
 #htp-game-btn {
   display: flex;
   align-items: center;
-  gap: 5px;
-  padding: 5px 12px;
-  border-radius: 7px;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 8px;
   cursor: pointer;
   background: rgba(255, 255, 255, 0.04);
   border: 1px solid var(--border);
   color: var(--txt6);
   font-family: inherit;
-  font-size: 9px;
+  font-size: 12px;
   letter-spacing: 2px;
   transition: all 0.18s;
   white-space: nowrap;
@@ -358,16 +358,16 @@ body.light #htp-game-btn:hover {
 /* IN-GAME HOW-TO-PLAY DRAWER */
 #htp-drawer {
   position: fixed;
-  bottom: 62px;
+  bottom: 68px;
   left: 50%;
   transform: translateX(-50%);
-  width: min(760px, 96vw);
+  width: min(820px, 96vw);
   background: var(--panel);
   border: 1px solid var(--border);
-  border-radius: 12px 12px 0 0;
+  border-radius: 14px 14px 0 0;
   backdrop-filter: blur(20px);
   z-index: 19;
-  padding: 18px 22px 14px;
+  padding: 20px 24px 16px;
   transition: opacity 0.25s, transform 0.25s, background 0.3s;
   opacity: 0;
   pointer-events: none;
@@ -381,10 +381,10 @@ body.light #htp-game-btn:hover {
 }
 
 #htp-drawer h3 {
-  font-size: 11px;
+  font-size: 13px;
   letter-spacing: 4px;
   color: var(--txt6);
-  margin-bottom: 14px;
+  margin-bottom: 16px;
   text-align: center;
 }
 
@@ -397,11 +397,11 @@ body.light #htp-game-btn:hover {
 .htp-item {
   background: rgba(255, 255, 255, 0.03);
   border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 10px;
+  border-radius: 10px;
+  padding: 12px;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 7px;
 }
 
 body.light .htp-item {
@@ -415,7 +415,7 @@ body.light .htp-item {
 }
 
 .htp-icon {
-  font-size: 16px;
+  font-size: 18px;
   flex-shrink: 0;
 }
 
@@ -484,55 +484,55 @@ body.light #pause-overlay {
 }
 
 .pause-title {
-  font-size: 44px;
-  letter-spacing: 10px;
+  font-size: 52px;
+  letter-spacing: 12px;
   color: var(--txt);
-  margin-bottom: 4px;
+  margin-bottom: 6px;
 }
 
 .pause-sub {
-  font-size: 11px;
-  letter-spacing: 3px;
+  font-size: 13px;
+  letter-spacing: 4px;
   color: var(--txt6);
-  margin-bottom: 12px;
+  margin-bottom: 16px;
 }
 
 .pause-btns {
   display: flex;
-  gap: 12px;
+  gap: 16px;
   flex-wrap: wrap;
   justify-content: center;
 }
 
 /* OVERLAY SHARED ELEMENTS */
 .ov-logo {
-  font-size: 52px;
-  letter-spacing: 14px;
+  font-size: 60px;
+  letter-spacing: 16px;
   font-weight: bold;
   color: var(--txt);
-  margin-bottom: 4px;
+  margin-bottom: 6px;
 }
 
 .ov-tag {
-  font-size: 10px;
-  letter-spacing: 4px;
+  font-size: 12px;
+  letter-spacing: 5px;
   color: var(--txt4);
-  margin-bottom: 24px;
+  margin-bottom: 28px;
 }
 
 /* Theme pills */
 .theme-row {
   display: flex;
-  gap: 8px;
-  margin-bottom: 22px;
+  gap: 10px;
+  margin-bottom: 26px;
 }
 
 .theme-pill {
-  padding: 6px 18px;
-  border-radius: 20px;
+  padding: 8px 22px;
+  border-radius: 24px;
   cursor: pointer;
-  font-size: 10px;
-  letter-spacing: 3px;
+  font-size: 12px;
+  letter-spacing: 4px;
   border: 1px solid var(--border);
   background: none;
   color: var(--txt6);
@@ -554,23 +554,23 @@ body.light #pause-overlay {
 /* Difficulty cards */
 .diff-row {
   display: flex;
-  gap: 12px;
-  margin-bottom: 22px;
+  gap: 16px;
+  margin-bottom: 26px;
   flex-wrap: wrap;
   justify-content: center;
 }
 
 .diff-card {
-  width: 174px;
-  padding: 18px 14px;
-  border-radius: 10px;
+  width: 200px;
+  padding: 22px 16px;
+  border-radius: 12px;
   border: 1px solid var(--border);
   background: rgba(255, 255, 255, 0.02);
   cursor: pointer;
   transition: all 0.2s;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
   align-items: center;
 }
 
@@ -615,8 +615,8 @@ body.light .diff-card:hover {
 }
 
 .dlabel {
-  font-size: 13px;
-  letter-spacing: 5px;
+  font-size: 15px;
+  letter-spacing: 6px;
   font-weight: bold;
 }
 
@@ -633,9 +633,9 @@ body.light .diff-card:hover {
 }
 
 .dstat {
-  font-size: 9px;
+  font-size: 10px;
   color: var(--txt4);
-  line-height: 2.1;
+  line-height: 2.2;
   text-align: left;
   width: 100%;
 }
@@ -653,20 +653,20 @@ body.light .diff-card:hover {
 
 /* Menu how-to-play accordion */
 .htp-acc-btn {
-  font-size: 10px;
-  letter-spacing: 3px;
+  font-size: 12px;
+  letter-spacing: 4px;
   color: var(--txt4);
   cursor: pointer;
   border: none;
   background: none;
   font-family: inherit;
-  padding: 4px 12px;
+  padding: 6px 16px;
   border-bottom: 1px dotted var(--border);
   transition: color 0.2s;
   margin-bottom: 0;
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
 }
 
 .htp-acc-btn:hover {
@@ -674,14 +674,14 @@ body.light .diff-card:hover {
 }
 
 .htp-acc-box {
-  max-width: 720px;
-  width: calc(100% - 32px);
+  max-width: 800px;
+  width: calc(100% - 40px);
   text-align: left;
   background: rgba(255, 255, 255, 0.03);
   border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 18px 22px;
-  margin: 12px 0 0;
+  border-radius: 10px;
+  padding: 22px 26px;
+  margin: 16px 0 0;
   display: none;
 }
 
@@ -696,7 +696,7 @@ body.light .htp-acc-box {
 .htp-acc-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 12px 24px;
+  gap: 16px 28px;
 }
 
 .htp-acc-item {
@@ -732,23 +732,23 @@ body.light .htp-acc-icon {
   color: var(--txt8);
   display: block;
   letter-spacing: 2px;
-  margin-bottom: 2px;
-  font-size: 9px;
+  margin-bottom: 4px;
+  font-size: 10px;
 }
 
 /* Start / action buttons */
 .ov-btn {
-  padding: 12px 48px;
+  padding: 14px 56px;
   background: transparent;
   border: 1px solid var(--border2);
-  border-radius: 4px;
+  border-radius: 6px;
   color: var(--txt8);
-  font-family: 'Courier New', monospace;
-  font-size: 11px;
-  letter-spacing: 5px;
+  font-family: 'Consolas', 'Courier New', monospace;
+  font-size: 13px;
+  letter-spacing: 6px;
   cursor: pointer;
   transition: all 0.2s;
-  margin-top: 4px;
+  margin-top: 6px;
 }
 
 .ov-btn:hover {
@@ -767,16 +767,16 @@ body.light .ov-btn:hover {
 
 /* Game over */
 .go-title {
-  font-size: 46px;
-  letter-spacing: 10px;
+  font-size: 54px;
+  letter-spacing: 12px;
   color: #e74c3c;
   text-shadow: 0 0 40px rgba(231, 76, 60, 0.4);
-  margin-bottom: 6px;
+  margin-bottom: 8px;
 }
 
 .go-reason {
-  font-size: 11px;
-  letter-spacing: 2px;
+  font-size: 13px;
+  letter-spacing: 3px;
   color: var(--txt6);
   margin-bottom: 18px;
 }

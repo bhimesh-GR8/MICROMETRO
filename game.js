@@ -768,11 +768,11 @@ export class Game {
         ? `LINE ${this.activeLineIndex + 1} SELECTED   ·   CLICK STATION TO EXTEND   OR   CLICK ADD TRAIN BELOW`
         : 'CLICK ANY STATION TO DRAW A LINE   ·   SELECT A SWATCH BELOW TO EXTEND A SPECIFIC LINE';
 
-    ctx.font = 'bold 10px Courier New';
+    ctx.font = 'bold 13px Courier New';
     ctx.textAlign = 'center';
-    const hintWidth = ctx.measureText(contextHint).width + 28;
+    const hintWidth = ctx.measureText(contextHint).width + 32;
     const hintX = width / 2;
-    const hintY = height - 76;
+    const hintY = height - 80;
 
     drawRoundedRect(ctx, hintX - hintWidth / 2, hintY - 14, hintWidth, 22, 11);
     ctx.fillStyle = isDark ? 'rgba(0, 0, 0, 0.55)' : 'rgba(255, 255, 255, 0.75)';
