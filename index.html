@@ -108,7 +108,27 @@
 
   <!-- MAIN OVERLAY (menu / game-over)  -->
   <div id="overlay"></div>
-
   <script type="module" src="main.js"></script>
+  <div id="music-player" aria-label="Background music player">
+    <div class="music-head">
+      <span class="music-title">SOUNDTRACK</span>
+      <span class="music-dot" aria-hidden="true"></span>
+    </div>
+    <div id="music-status">READY · TRACK 01</div>
+    <div class="music-controls">
+      <button id="music-toggle" type="button" aria-pressed="false">▶ PLAY</button>
+      <label class="sr-only" for="music-select">Choose a song</label>
+      <select id="music-select">
+        <option value="sayyes.mp3">Say Yes To Heaven</option>
+        <option value="Neon moon.mp3">Neon Moon</option>
+        <option value="COLD.mp3">COLD</option>
+        <option value="loverrock.mp3">loverrock</option>
+        <option value="Awakening - NCS.mp3">Awakening - NCS</option>
+        <option value="Mr. Blue Sky.mp3">Mr. Blue Sky</option>
+      </select>
+    </div>
+  </div>
+
+
 </body>
 </html>
