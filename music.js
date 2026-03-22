@@ -2,7 +2,7 @@
 
 const SONG_LIBRARY = [
   { id: 'sayyes', name: 'Say Yes To Heaven', src: 'assets/music/sayyes.mp3' },
-  { id: 'neonmoon', name: 'Neon Moon', src: 'assets/music/Neon moon.mp3' },
+  { id: 'Neon Moon', name: 'Neon Moon', src: 'assets/music/Neon moon.mp3' },
   { id: 'cold', name: 'COLD', src: 'assets/music/COLD.mp3' },
   { id: 'loverrock', name: 'loverrock', src: 'assets/music/loverrock.mp3' },
   { id: 'Awakening - NCS', name: 'Awakening - NCS', src: 'assets/music/Awakening - NCS.mp3' },
