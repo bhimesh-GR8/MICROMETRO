@@ -1,7 +1,5 @@
 'use strict';
 
-// Replace these placeholder src values with the audio files you download/import.
-// Example: './audio/metro-theme.mp3'
 const SONG_LIBRARY = [
   { id: 'sayyes', name: 'Say Yes To Heaven', src: 'assets/music/sayyes.mp3' },
   { id: 'neonmoon', name: 'Neon Moon', src: 'assets/music/Neon moon.mp3' },
