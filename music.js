@@ -67,7 +67,7 @@ class MetroMusicPlayer {
 
     this.audio.addEventListener('error', () => {
       this.isPlaying = false;
-      this.updateUI('MISSING FILE · UPDATE music.js SRC PATHS');
+      this.updateUI('FILE DOESNT EXISTS - Try again later');
     });
 
     document.addEventListener('visibilitychange', () => {
@@ -96,7 +96,7 @@ class MetroMusicPlayer {
       await this.audio.play();
     } catch (error) {
       this.isPlaying = false;
-      this.updateUI('MISSING FILE · UPDATE music.js SRC PATHS');
+      this.updateUI('FILE doesnt exist - try again later or select another song');
     }
   }
 

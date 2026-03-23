@@ -8,6 +8,7 @@ import {
   STATION_RADIUS,
   STATION_SPAWN_INTERVAL,
   MIN_STATION_DISTANCE,
+  MAX_STATIONS,
   INITIAL_STATIONS,
   INSERT_DETECTION_RADIUS
 } from './constants.js';
@@ -40,8 +41,8 @@ export class Game {
     this.activeLineIndex = -1;
 
     this.score = 0;
+    this.totalSpent = 0;
     this.isRunning = false;
-    this.isPaused = false;
 
     this.floatingTexts = [];
     this.mouseX = 0;
@@ -240,11 +241,12 @@ export class Game {
     overlay.style.display = 'flex';
     overlay.classList.remove('fade-out');
     overlay.classList.add('vis');
+    const finalScore = Math.round(this.score + (this.totalSpent * 0.8));
     overlay.innerHTML = `
       <div class="go-title">GAME OVER LOL</div>
       <div class="go-reason">A STATION WAS OVERWHELMED BY WAITING PASSENGERS BECAUSE U DIDNT CATE ANOUT THEM</div>
-      <div class="go-score">${this.score}</div>
-      <div class="go-sub">POINTS  ·  ${this.currentDifficulty.label} MODE</div>
+      <div class="go-score">${finalScore}</div>
+      <div class="go-sub">FINAL SCORE  ·  ${this.currentDifficulty.label} MODE</div>
       <div class="go-btns">
         <button class="ov-btn" id="go-retry">↺ LETS PLAY AGAIN!</button>
         <button class="ov-btn dim" id="go-menu">⌂ BACK TO MENU</button>
@@ -262,8 +264,8 @@ export class Game {
     this.selectedStation = null;
     this.activeLineIndex = -1;
     this.score = 0;
+    this.totalSpent = 0;
     this.floatingTexts = [];
-    this.passSpawnTimer = -5;
     this.stationSpawnTimer = 0;
     this.isRunning = true;
     this.isPaused = false;
@@ -297,7 +299,29 @@ export class Game {
     }
   }
 
+  isPointInUI(x, y) {
+    const uiIds = ['hud', 'panel'];
+    const padding = STATION_RADIUS + 8;
+
+    return uiIds.some(id => {
+      const el = document.getElementById(id);
+      if (!el) return false;
+      const rect = el.getBoundingClientRect();
+      if (!rect.width || !rect.height) return false;
+
+      // Canvas covers viewport; client coordinates match canvas coordinates.
+      return (
+        x >= rect.left - padding &&
+        x <= rect.right + padding &&
+        y >= rect.top - padding &&
+        y <= rect.bottom + padding
+      );
+    });
+  }
+
   spawnStation() {
+    if (this.stations.length >= MAX_STATIONS) return;
+
     const margin = 90;
     const width = this.canvas.width;
     const height = this.canvas.height;
@@ -305,6 +329,8 @@ export class Game {
     for (let attempt = 0; attempt < 160; attempt++) {
       const x = margin + Math.random() * (width - margin * 2);
       const y = margin + Math.random() * (height - margin * 2);
+
+      if (this.isPointInUI(x, y)) continue;
 
       const tooClose = this.stations.some(stn => Math.hypot(stn.x - x, stn.y - y) < MIN_STATION_DISTANCE);
       if (!tooClose) {
@@ -343,9 +369,10 @@ export class Game {
     }
 
     this.score -= cost;
+    this.totalSpent += cost;
     this.maxLines++;
-    this.updateHUD();
     this.updatePanel();
+    this.updateHUD
     this.showFlashMessage(`NEW LINE SLOT UNLOCKED  ·  ${this.maxLines} TOTAL`);
   }
 
@@ -380,9 +407,10 @@ export class Game {
     }
 
     this.score -= cost;
+    this.totalSpent += cost;
     line.addTrain();
-    this.updateHUD();
     this.updatePanel();
+    this.updateHUD
     this.showFlashMessage(`TRAIN ADDED  ·  ${line.trains.length} TRAINS ON LINE ${this.activeLineIndex + 1}`);
   }
 

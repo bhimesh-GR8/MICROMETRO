@@ -46,6 +46,7 @@ export const TRAIN_SPEED = 150;
 export const TRAIN_STOP_TIME = 1.3;
 export const STATION_SPAWN_INTERVAL = 26;
 export const MIN_STATION_DISTANCE = 112;
+export const MAX_STATIONS = 28;
 export const STATION_RADIUS = 16;
 export const INITIAL_STATIONS = 6;
 export const INSERT_DETECTION_RADIUS = 72;
