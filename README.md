@@ -18,3 +18,5 @@ A simple static web project with `index.html`, `style.css`, and `script.js`.
 `Index.html` is mostly about how to play and overlay displays while i have made most of the body texts in the `script.js`.
 A lot of modes and functions are used in javascript which determines how the train will move spawn and the max limit of passengers in the train as well.
 And lastly all the hardworks relating to the ui and brain crakcking suppliments are in `style.css`
+
+AI - DECLARATION: Used Ai for making my code neater and used ai in some parts of JavaScript cuz I couldn't complete the problems accurately
